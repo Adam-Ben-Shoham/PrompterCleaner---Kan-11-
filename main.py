@@ -3,23 +3,29 @@ from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-chars_to_remove = ['a','b','c','d','e',
-                   'f','g','h','i','j',
-                   'k','l','m','n','o',
-                   'p','q','r','s','t',
-                   'u','v','w','x','y',
-                   'z','(',')','*','@',
-                   '&','{','}','^']
+chars_to_remove = 'abcdefghijklmnopqrstuvwxyz()*@&{}^'
+table = str.maketrans('', '', chars_to_remove)
 
 class MyHandler(FileSystemEventHandler):
+
+    def clean_text(self, file_path):
+        with open(file_path, 'r', encoding='utf-8') as f:
+            text = f.read().lower()
+            cleaned_text = text.translate(table)
+
+        if text == cleaned_text:
+            return
+
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(cleaned_text)
+
     def on_modified(self,event):
 
+        print('event detected')
         if not event.is_directory and event.src_path.endswith('.txt'):
 
-            time.sleep(0.1)
-            with open(event.src_path, 'r', encoding='utf-8') as f:
-                text = f.read().lower()
-
+            time.sleep(0.5)
+            self.clean_text(event.src_path)
 
 
 
