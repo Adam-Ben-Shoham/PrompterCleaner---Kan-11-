@@ -4,6 +4,7 @@ from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import os
+import winsound
 
 if getattr(sys, 'frozen', False):
     current_dir = Path(sys.executable).parent.resolve()
@@ -36,6 +37,7 @@ class MyHandler(FileSystemEventHandler):
                 f.write(cleaned_text)
 
             os.replace(temp_file, file_path)
+            winsound.Beep(1000, 200)
 
             log_action(f'Successfully cleaned {file_path}\n')
 
