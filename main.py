@@ -54,7 +54,7 @@ class MyHandler(FileSystemEventHandler):
         if 'cleaning_log.txt' in event.src_path or event.src_path.endswith('.tmp'):
             return
 
-        if not event.is_directory and event.src_path.lower().endswith('.txt'):
+        if not event.is_directory and event.src_path.lower().endswith('פרומפטר.txt'):
             time.sleep(0.7)
             self.clean_text(event.src_path)
 
