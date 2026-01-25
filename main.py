@@ -5,6 +5,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import os
 import winsound
+import ctypes
 
 if getattr(sys, 'frozen', False):
     current_dir = Path(sys.executable).parent.resolve()
@@ -31,13 +32,13 @@ class MyHandler(FileSystemEventHandler):
             if text == cleaned_text:
                 return
 
-            temp_file = file_path + '.tmp'
+            temp_file = str(file_path) + '.tmp'
 
             with open(temp_file, 'w', encoding='utf-8') as f:
                 f.write(cleaned_text)
 
             os.replace(temp_file, file_path)
-            winsound.Beep(1000, 200)
+            winsound.Beep(500, 200)
 
             log_action(f'Successfully cleaned {file_path}\n')
 
@@ -58,7 +59,7 @@ class MyHandler(FileSystemEventHandler):
             self.clean_text(event.src_path)
 
     def on_created(self, event):
-        pass
+        self.on_modified(event)
 
 
 def log_action(message):
@@ -72,14 +73,13 @@ def log_action(message):
 
 
 if __name__ == "__main__":
-
+    watch_path = str(current_dir)
     event_handler = MyHandler()
 
-    # home = Path.home()
-    # test_folder = home / 'Downloads' / 'test'
+    ctypes.windll.user32.MessageBoxW(0, f"Watching: {watch_path}", "Prompter Tool", 0x40000)
 
     observer = Observer()
-    observer.schedule(event_handler, path=str(current_dir), recursive=False)
+    observer.schedule(event_handler, path=watch_path, recursive=False)
     observer.start()
 
     try:
