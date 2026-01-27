@@ -1,8 +1,6 @@
 import sys
 import time
 from pathlib import Path
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 import os
 import winsound
 import ctypes
@@ -19,48 +17,31 @@ complete_removal_list = chars_to_remove + niqqud_chars
 table = str.maketrans('', '', complete_removal_list)
 
 
-class MyHandler(FileSystemEventHandler):
 
-    def clean_text(self, file_path):
 
-        try:
+def clean_text(file_path):
 
-            with open(file_path, 'r', encoding='utf-8') as f:
-                text = f.read().lower()
-                cleaned_text = text.translate(table)
+    try:
 
-            if text == cleaned_text:
-                return
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            text = f.read().lower()
+            cleaned_text = text.translate(table)
 
-            temp_file = str(file_path) + '.tmp'
-
-            with open(temp_file, 'w', encoding='utf-8') as f:
-                f.write(cleaned_text)
-
-            os.replace(temp_file, file_path)
-            winsound.Beep(500, 200)
-
-            log_action(f'Successfully cleaned {file_path}\n')
-
-        except FileNotFoundError:
-            log_action(f'{file_path} not found')
-        except PermissionError:
-            log_action(f'Permission Error for: {file_path} \n')
-        except Exception as e:
-            log_action(f'Unknown Error for: {file_path} \n')
-
-    def on_modified(self, event):
-
-        if 'cleaning_log.txt' in event.src_path or event.src_path.endswith('.tmp'):
+        if text == cleaned_text:
             return
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(cleaned_text)
 
-        if not event.is_directory and event.src_path.lower().endswith('פרומפטר.txt'):
-            time.sleep(0.7)
-            self.clean_text(event.src_path)
+        winsound.Beep(500, 200)
 
-    def on_created(self, event):
-        self.on_modified(event)
+        log_action(f'Successfully cleaned {file_path}\n')
 
+    except FileNotFoundError:
+        log_action(f'{file_path} not found')
+    except PermissionError as e:
+        log_action(f'Permission Error for: {file_path} error is {e} \n')
+    except Exception as e:
+        log_action(f'Unknown Error for: {file_path} error: {e} \n')
 
 def log_action(message):
     log_path = current_dir / 'cleaning_log.txt'
@@ -73,23 +54,21 @@ def log_action(message):
 
 
 if __name__ == "__main__":
-    watch_path = str(current_dir)
-    event_handler = MyHandler()
+    watch_path = current_dir
 
     ctypes.windll.user32.MessageBoxW(0, f"Watching: {watch_path}", "Prompter Tool", 0x40000)
 
-    observer = Observer()
-    observer.schedule(event_handler, path=watch_path, recursive=False)
-    observer.start()
 
-    try:
-        while observer.is_alive():
+    while True:
+        try:
+            for file_path in watch_path.glob('*פרומפטר.txt'):
+                if file_path.name != 'cleaning_log.txt':
+                    clean_text(file_path)
+
             time.sleep(1)
 
-    except KeyboardInterrupt:
-        observer.stop()
-
-    except Exception as e:
-        observer.stop()
-
-    observer.join()
+        except KeyboardInterrupt:
+            break
+        except Exception as e:
+            log_action(f'Polling loop error: {str(e)}')
+            time.sleep(5)
