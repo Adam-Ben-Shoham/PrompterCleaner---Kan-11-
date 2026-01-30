@@ -10,13 +10,11 @@ if getattr(sys, 'frozen', False):
 else:
     current_dir = Path(__file__).parent.resolve()
 
-chars_to_remove = 'abcdefghijklmnopqrstuvwxyz()*@&{}^'
-niqqud_chars = ''.join(chr(c) for c in range(0x05B0, 0x05C8))
+chars_to_remove = 'abcdefghijklmnopqrstuvwxyz()*@&{}^+'
+niqqud_chars = ''.join(chr(c) for c in range(0x0591, 0x05C8))
 complete_removal_list = chars_to_remove + niqqud_chars
 
 table = str.maketrans('', '', complete_removal_list)
-
-
 
 
 def clean_text(file_path):
@@ -44,7 +42,7 @@ def clean_text(file_path):
         log_action(f'Unknown Error for: {file_path} error: {e} \n')
 
 def log_action(message):
-    log_path = current_dir / 'cleaning_log.txt'
+    log_path = current_dir / 'New folder (4)' / 'log.txt'
 
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -62,8 +60,10 @@ if __name__ == "__main__":
     while True:
         try:
             for file_path in watch_path.glob('*פרומפטר.txt'):
-                if file_path.name != 'cleaning_log.txt':
-                    clean_text(file_path)
+                if file_path.name == 'cleaning_log.txt':
+                    continue
+
+                clean_text(file_path)
 
             time.sleep(1)
 
